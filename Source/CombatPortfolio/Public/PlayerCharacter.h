@@ -37,6 +37,9 @@ protected:
 	void LookUpAtRate(float Rate);
 
 
+
+	
+
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }

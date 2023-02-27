@@ -70,6 +70,25 @@ void ABaseCharacter::MoveRight(float Value)
 	}
 }
 
+void ABaseCharacter::TryDodge()
+{
+	// if player is recovering from action, return
+	if(CurrentActionState == EActionState::Recovering) return;
+	
+	// if player is able to dodge, make dodge
+	if(CurrentActionState == EActionState::Idle)
+	{
+		// TODO: BeginDodge
+		//BeginDodge();
+		return;
+	}
+}
+
+void ABaseCharacter::FinishDodging()
+{
+	
+}
+
 // Called every frame
 void ABaseCharacter::Tick(float DeltaTime)
 {
