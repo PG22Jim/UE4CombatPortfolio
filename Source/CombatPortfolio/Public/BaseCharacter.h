@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CharacterActionInterface.h"
 #include "GameFramework/Character.h"
 #include "BaseCharacter.generated.h"
 
@@ -26,7 +27,7 @@ enum class EActionState: uint8
 
 
 UCLASS()
-class COMBATPORTFOLIO_API ABaseCharacter : public ACharacter
+class COMBATPORTFOLIO_API ABaseCharacter : public ACharacter , public ICharacterActionInterface
 {
 	GENERATED_BODY()
 
@@ -51,6 +52,16 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=CharacterProperty)
 	EActionState CurrentActionState = EActionState::Idle;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=AnimMontages)
+	UAnimMontage* DodgeAnimMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=AnimMontages)
+	TArray<UAnimMontage*> NormalAttackMontages;
+
+	int32 NormalAttackCounter = 0;
+	
 	
 	/** 
 	* Called via input to turn at a given rate. 
@@ -69,13 +80,37 @@ protected:
 	void TryDodge();
 
 	UFUNCTION(BlueprintCallable)
+	void BeginDodge();
+
+	UFUNCTION(BlueprintCallable)
 	void FinishDodging();
+
+	
+	UFUNCTION(BlueprintCallable)
+	void TryNormalAttack();
+
+	UFUNCTION(BlueprintCallable)
+	void BeginNormalAttack();
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UAnimMontage* GetNormalAttackAnimMontage();
+
+	void NormalAttackCounterIncrement();
+
+	void ResetNormalAttackCounter();
+
 	
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
+	virtual void SetDodgingState_Implementation(bool IsDodgingEnd) override;
+
+	virtual void SetRecoveringState_Implementation(bool IsRecovering) override;
+
+	
+	
 };

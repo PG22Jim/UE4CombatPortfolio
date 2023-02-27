@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "BaseCharacter.h"
+#include "CombatPortfolio/Public/BaseCharacter.h"
 
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -72,22 +72,83 @@ void ABaseCharacter::MoveRight(float Value)
 
 void ABaseCharacter::TryDodge()
 {
-	// if player is recovering from action, return
-	if(CurrentActionState == EActionState::Recovering) return;
+	
+	// if player is recovering from action or is dodging, return
+	if(CurrentActionState == EActionState::Recovering || CurrentActionState == EActionState::Evade) return;
 	
 	// if player is able to dodge, make dodge
 	if(CurrentActionState == EActionState::Idle)
 	{
-		// TODO: BeginDodge
-		//BeginDodge();
+		BeginDodge();
 		return;
 	}
+
+	// TODO: if player is attacking, store next command
+}
+
+void ABaseCharacter::BeginDodge()
+{
+	
+	if(DodgeAnimMontage == nullptr) return;
+
+	CurrentActionState = EActionState::Evade;
+
+	PlayAnimMontage(DodgeAnimMontage, 1, NAME_None);
 }
 
 void ABaseCharacter::FinishDodging()
 {
-	
+
 }
+
+// ============================================= Attack =============================================
+void ABaseCharacter::TryNormalAttack()
+{
+	// if player is recovering from action or is dodging, return
+	if(CurrentActionState == EActionState::Recovering || CurrentActionState == EActionState::NormalAttack) return;
+	
+	// if player is able to dodge, make dodge
+	if(CurrentActionState == EActionState::Idle)
+	{
+		BeginNormalAttack();
+		return;
+	}
+
+	// TODO: if player is attacking, store next command
+}
+
+void ABaseCharacter::BeginNormalAttack()
+{
+	if(NormalAttackMontages[0] == nullptr) return;
+
+	CurrentActionState = EActionState::NormalAttack;
+
+	UAnimMontage* PlayingMontage = GetNormalAttackAnimMontage();
+
+	PlayAnimMontage(PlayingMontage, 1, NAME_None);
+
+	NormalAttackCounterIncrement();
+}
+
+UAnimMontage* ABaseCharacter::GetNormalAttackAnimMontage()
+{
+	return NormalAttackMontages[NormalAttackCounter];
+}
+
+void ABaseCharacter::NormalAttackCounterIncrement()
+{
+	NormalAttackCounter++;
+	if(NormalAttackCounter >= 5)
+	{
+		ResetNormalAttackCounter();
+	}
+}
+
+void ABaseCharacter::ResetNormalAttackCounter()
+{
+	NormalAttackCounter = 0;
+}
+
 
 // Called every frame
 void ABaseCharacter::Tick(float DeltaTime)
@@ -101,5 +162,35 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+}
+
+// =============================================== Interface Implementation ======================================
+void ABaseCharacter::SetDodgingState_Implementation(bool IsDodging)
+{
+	ICharacterActionInterface::SetDodgingState_Implementation(IsDodging);
+
+	// if bool is true, it means is dodging, flip state to evade state
+	if(IsDodging)
+	{
+		CurrentActionState = EActionState::Evade;
+	}
+	else
+	{
+		CurrentActionState = EActionState::Idle;
+	}
+}
+
+void ABaseCharacter::SetRecoveringState_Implementation(bool IsRecovering)
+{
+	ICharacterActionInterface::SetRecoveringState_Implementation(IsRecovering);
+
+	if(IsRecovering)
+	{
+		CurrentActionState = EActionState::Recovering;
+	}
+	else
+	{
+		CurrentActionState = EActionState::Idle;
+	}
 }
 
