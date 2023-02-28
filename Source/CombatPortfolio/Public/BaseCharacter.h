@@ -19,9 +19,9 @@ UENUM(BlueprintType)
 enum class EActionState: uint8
 {
 	Idle = 0 UMETA(DisplayName = "IDLE"),
-	Evade = 3 UMETA(DisplayName = "EVADE"),
-	NormalAttack = 4 UMETA(DisplayName = "NORMALATTACK"),
-	Recovering = 5 UMETA(DisplayName = "RECOVERING")
+	Evade = 1 UMETA(DisplayName = "EVADE"),
+	NormalAttack = 2 UMETA(DisplayName = "NORMALATTACK"),
+	Recovering = 3 UMETA(DisplayName = "RECOVERING")
 };
 
 
@@ -60,6 +60,16 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=AnimMontages)
 	TArray<UAnimMontage*> NormalAttackMontages;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	EActionState BufferingAction = EActionState::Idle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float BufferDuration = 0.2f;
+
+	// Timer Handle for calling parkour functions in time
+	FTimerHandle BufferTimerHandle;
+	
+	
 	int32 NormalAttackCounter = 0;
 	
 	
@@ -82,9 +92,6 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void BeginDodge();
 
-	UFUNCTION(BlueprintCallable)
-	void FinishDodging();
-
 	
 	UFUNCTION(BlueprintCallable)
 	void TryNormalAttack();
@@ -99,6 +106,12 @@ protected:
 
 	void ResetNormalAttackCounter();
 
+
+	void StoreBufferingCommand(EActionState BufferingActionCommand);
+
+	void ResetBufferCommand();
+
+	void BufferChecking();
 	
 public:	
 	// Called every frame
@@ -107,6 +120,9 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
+
+	virtual void SwitchToIdleState_Implementation(bool BufferingCheck) override;
+	
 	virtual void SetDodgingState_Implementation(bool IsDodgingEnd) override;
 
 	virtual void SetRecoveringState_Implementation(bool IsRecovering) override;

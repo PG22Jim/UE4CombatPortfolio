@@ -5,6 +5,7 @@
 
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values
 ABaseCharacter::ABaseCharacter()
@@ -70,6 +71,8 @@ void ABaseCharacter::MoveRight(float Value)
 	}
 }
 
+// ========================================= Dodge =============================================
+// =============================================================================================
 void ABaseCharacter::TryDodge()
 {
 	
@@ -82,8 +85,14 @@ void ABaseCharacter::TryDodge()
 		BeginDodge();
 		return;
 	}
-
-	// TODO: if player is attacking, store next command
+	
+	// TODO: if player is attacking, store next command as dodging
+	if(CurrentActionState == EActionState::NormalAttack)
+	{
+		// only store normal attack as buffering command if current buffering command is not normal attack
+		if(BufferingAction != EActionState::Evade)
+			StoreBufferingCommand(EActionState::Evade);
+	}
 }
 
 void ABaseCharacter::BeginDodge()
@@ -96,16 +105,13 @@ void ABaseCharacter::BeginDodge()
 	PlayAnimMontage(DodgeAnimMontage, 1, NAME_None);
 }
 
-void ABaseCharacter::FinishDodging()
-{
-
-}
 
 // ============================================= Attack =============================================
+// ==================================================================================================
 void ABaseCharacter::TryNormalAttack()
 {
 	// if player is recovering from action or is dodging, return
-	if(CurrentActionState == EActionState::Recovering || CurrentActionState == EActionState::NormalAttack) return;
+	if(CurrentActionState == EActionState::Recovering) return;
 	
 	// if player is able to dodge, make dodge
 	if(CurrentActionState == EActionState::Idle)
@@ -114,7 +120,13 @@ void ABaseCharacter::TryNormalAttack()
 		return;
 	}
 
-	// TODO: if player is attacking, store next command
+	// TODO: if player is attacking, store next command as normal attack
+	if(CurrentActionState == EActionState::NormalAttack)
+	{
+		// only store normal attack as buffering command if current buffering command is not normal attack
+		if(BufferingAction != EActionState::NormalAttack)
+			StoreBufferingCommand(EActionState::NormalAttack);
+	}
 }
 
 void ABaseCharacter::BeginNormalAttack()
@@ -149,6 +161,55 @@ void ABaseCharacter::ResetNormalAttackCounter()
 	NormalAttackCounter = 0;
 }
 
+// ========================================= Buffering =============================================
+// =================================================================================================
+
+void ABaseCharacter::StoreBufferingCommand(EActionState BufferingActionCommand)
+{
+	const UWorld* World = GetWorld();
+	if(World == nullptr) return;
+
+	// Store buffer command
+	BufferingAction = BufferingActionCommand;
+
+	
+	
+	World->GetTimerManager().SetTimer(BufferTimerHandle,this, &ABaseCharacter::ResetBufferCommand, BufferDuration, false, -1);
+}
+
+void ABaseCharacter::ResetBufferCommand()
+{
+	BufferingAction = EActionState::Idle;
+}
+
+void ABaseCharacter::BufferChecking()
+{
+	// Stop buffering timer
+	const UWorld* World = GetWorld();
+	if(World == nullptr) return;
+	World->GetTimerManager().ClearTimer(BufferTimerHandle);
+
+	// switch case to check buffering state
+	switch (BufferingAction)
+	{
+		case EActionState::Evade:
+			ResetBufferCommand();
+			StopAnimMontage();
+			BeginDodge();
+			break;
+		
+		case EActionState::NormalAttack:
+			ResetBufferCommand();
+			StopAnimMontage();
+			BeginNormalAttack();
+			break;
+		
+		default:
+			break;
+	}
+	
+}
+
 
 // Called every frame
 void ABaseCharacter::Tick(float DeltaTime)
@@ -164,7 +225,32 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 }
 
+
+
 // =============================================== Interface Implementation ======================================
+
+void ABaseCharacter::SwitchToIdleState_Implementation(bool BufferingCheck)
+{
+	ICharacterActionInterface::SwitchToIdleState_Implementation(BufferingCheck);
+
+	// reset current action state
+	CurrentActionState = EActionState::Idle;
+
+	// if notify is firing buffering check, check if player is storing buffering command
+	if(BufferingCheck)
+	{
+		BufferChecking();
+		return;
+	}
+
+	// reset normal attack counter
+	ResetNormalAttackCounter();
+
+	// reset buffering command no matter what
+	BufferingAction = EActionState::Idle;
+}
+
+
 void ABaseCharacter::SetDodgingState_Implementation(bool IsDodging)
 {
 	ICharacterActionInterface::SetDodgingState_Implementation(IsDodging);

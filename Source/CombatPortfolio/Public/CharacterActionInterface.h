@@ -25,6 +25,10 @@ class COMBATPORTFOLIO_API ICharacterActionInterface
 
 public:
 	// NativeEvent to get override and get called with _Implemtation
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void SwitchToIdleState(bool BufferingCheck);
+
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void SetDodgingState(bool IsDodging);
 
