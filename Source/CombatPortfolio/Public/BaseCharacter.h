@@ -21,7 +21,10 @@ enum class EActionState: uint8
 	Idle = 0 UMETA(DisplayName = "IDLE"),
 	Evade = 1 UMETA(DisplayName = "EVADE"),
 	NormalAttack = 2 UMETA(DisplayName = "NORMALATTACK"),
-	Recovering = 3 UMETA(DisplayName = "RECOVERING")
+	Recovering = 3 UMETA(DisplayName = "RECOVERING"),
+	Parry = 4 UMETA(DisplayName = "PARRY"),
+	Guard = 5 UMETA(DisplayName = "GUARD"),
+	EndGuard = 6 UMETA(DisplayName = "ENDGUARD")
 };
 
 
@@ -60,6 +63,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=AnimMontages)
 	TArray<UAnimMontage*> NormalAttackMontages;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=AnimMontages)
+	UAnimMontage* ParryAnimMontage;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=AnimMontages)
+	UAnimMontage* CancelGuardAnimMontage;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	EActionState BufferingAction = EActionState::Idle;
 
@@ -85,6 +94,8 @@ protected:
 	/** Called for side to side input */
 	void MoveRight(float Value);
 
+	// =========================================== Dodge ===========================================
+
 	
 	UFUNCTION(BlueprintCallable)
 	void TryDodge();
@@ -92,7 +103,9 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void BeginDodge();
 
-	
+
+	// =========================================== Normal Attack ===========================================
+
 	UFUNCTION(BlueprintCallable)
 	void TryNormalAttack();
 
@@ -107,11 +120,24 @@ protected:
 	void ResetNormalAttackCounter();
 
 
+	// =========================================== Buffer ===========================================
 	void StoreBufferingCommand(EActionState BufferingActionCommand);
 
 	void ResetBufferCommand();
 
 	void BufferChecking();
+
+
+	// =========================================== Guard ===========================================
+
+	void TryGuard();
+
+	void BeginGuarding();
+
+	void TryCancelGuarding();
+
+	void CancelGuarding();
+
 	
 public:	
 	// Called every frame
@@ -120,12 +146,16 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
+	virtual void ParryToGuard_Implementation() override;
+
+	virtual void GuardToGuardEnd_Implementation() override;
 
 	virtual void SwitchToIdleState_Implementation(bool BufferingCheck) override;
 	
 	virtual void SetDodgingState_Implementation(bool IsDodgingEnd) override;
 
 	virtual void SetRecoveringState_Implementation(bool IsRecovering) override;
+
 
 	
 	

@@ -9,9 +9,7 @@ void UAN_FinishActionAnim::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenc
 {
 	Super::Notify(MeshComp, Animation);
 
-	const bool IsValidUObject = IsValid(MeshComp);
-
-	if(!IsValidUObject) return;
+	if(!MeshComp || !MeshComp->GetOwner()) return;
 
 	AActor* OwnerRef = MeshComp->GetOwner();
 

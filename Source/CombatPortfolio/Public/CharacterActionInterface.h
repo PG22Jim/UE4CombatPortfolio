@@ -30,6 +30,12 @@ public:
 	void SwitchToIdleState(bool BufferingCheck);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void ParryToGuard();
+	
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void GuardToGuardEnd();
+	
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void SetDodgingState(bool IsDodging);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)

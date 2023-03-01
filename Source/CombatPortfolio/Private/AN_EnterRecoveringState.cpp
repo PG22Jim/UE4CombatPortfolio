@@ -9,14 +9,12 @@ void UAN_EnterRecoveringState::Notify(USkeletalMeshComponent* MeshComp, UAnimSeq
 {
 	Super::Notify(MeshComp, Animation);
 
-	const bool IsValidUObject = IsValid(MeshComp);
-
-	if(!IsValidUObject) return;
+	if(!MeshComp || !MeshComp->GetOwner()) return;
 
 	AActor* OwnerRef = MeshComp->GetOwner();
 
 	if(OwnerRef->GetClass()->ImplementsInterface(UCharacterActionInterface::StaticClass()))
 	{
-		ICharacterActionInterface::Execute_SetDodgingState(OwnerRef, true);
+		ICharacterActionInterface::Execute_SetRecoveringState(OwnerRef, true);
 	}
 }

@@ -33,6 +33,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAxis("MoveRight", this, &APlayerCharacter::MoveRight);
 	PlayerInputComponent->BindAction("Evade", IE_Pressed, this, &APlayerCharacter::TryDodge);
 	PlayerInputComponent->BindAction("NormalAttack", IE_Pressed, this, &APlayerCharacter::TryNormalAttack);
+	PlayerInputComponent->BindAction("Guard", IE_Pressed, this, &APlayerCharacter::TryGuard);
+	PlayerInputComponent->BindAction("Guard", IE_Released, this, &APlayerCharacter::TryCancelGuarding);
 	
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently

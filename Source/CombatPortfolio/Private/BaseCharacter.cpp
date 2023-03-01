@@ -75,9 +75,8 @@ void ABaseCharacter::MoveRight(float Value)
 // =============================================================================================
 void ABaseCharacter::TryDodge()
 {
-	
 	// if player is recovering from action or is dodging, return
-	if(CurrentActionState == EActionState::Recovering || CurrentActionState == EActionState::Evade) return;
+	if(CurrentActionState == EActionState::Recovering || CurrentActionState == EActionState::Evade || CurrentActionState == EActionState::EndGuard) return;
 	
 	// if player is able to dodge, make dodge
 	if(CurrentActionState == EActionState::Idle)
@@ -111,10 +110,10 @@ void ABaseCharacter::BeginDodge()
 void ABaseCharacter::TryNormalAttack()
 {
 	// if player is recovering from action or is dodging, return
-	if(CurrentActionState == EActionState::Recovering) return;
+	if(CurrentActionState == EActionState::Recovering || CurrentActionState == EActionState::EndGuard) return;
 	
-	// if player is able to dodge, make dodge
-	if(CurrentActionState == EActionState::Idle)
+	// if player is able to attack, do normal attack
+	if(CurrentActionState == EActionState::Idle || CurrentActionState == EActionState::Guard)
 	{
 		BeginNormalAttack();
 		return;
@@ -131,7 +130,7 @@ void ABaseCharacter::TryNormalAttack()
 
 void ABaseCharacter::BeginNormalAttack()
 {
-	if(NormalAttackMontages[0] == nullptr) return;
+	if(NormalAttackMontages[NormalAttackCounter] == nullptr) return;
 
 	CurrentActionState = EActionState::NormalAttack;
 
@@ -173,7 +172,7 @@ void ABaseCharacter::StoreBufferingCommand(EActionState BufferingActionCommand)
 	BufferingAction = BufferingActionCommand;
 
 	
-	
+	World->GetTimerManager().ClearTimer(BufferTimerHandle);
 	World->GetTimerManager().SetTimer(BufferTimerHandle,this, &ABaseCharacter::ResetBufferCommand, BufferDuration, false, -1);
 }
 
@@ -203,11 +202,80 @@ void ABaseCharacter::BufferChecking()
 			StopAnimMontage();
 			BeginNormalAttack();
 			break;
+
+		case EActionState::Parry:
+			ResetBufferCommand();
+			StopAnimMontage();
+			BeginGuarding();
+			break;
+
+		case EActionState::EndGuard:
+			ResetBufferCommand();
+			StopAnimMontage();
+			CancelGuarding();
+			break;
 		
 		default:
 			break;
 	}
 	
+}
+
+// =============================================== Guard ======================================
+
+void ABaseCharacter::TryGuard()
+{
+	// if player is recovering from action or is guarding or parrying, return
+	if(CurrentActionState == EActionState::Recovering || CurrentActionState == EActionState::Guard || CurrentActionState == EActionState::Parry || CurrentActionState == EActionState::EndGuard) return;
+	
+	// if player is able to attack, do normal attack
+	if(CurrentActionState == EActionState::Idle)
+	{
+		BeginGuarding();
+		return;
+	}
+
+	// TODO: if player is attacking, store next command as guarding
+	if(CurrentActionState == EActionState::NormalAttack)
+	{
+		// only store guarding as buffering command if current buffering command is not normal attack
+		if(BufferingAction != EActionState::Parry)
+			StoreBufferingCommand(EActionState::Parry);
+	}
+}
+
+void ABaseCharacter::BeginGuarding()
+{
+	// reset normal attack counter to 0 if it is not 0
+	if(NormalAttackCounter != 0) ResetNormalAttackCounter();;
+	
+	// reset buffering command no matter what
+	BufferingAction = EActionState::Idle;
+
+	CurrentActionState = EActionState::Parry;
+	PlayAnimMontage(ParryAnimMontage,1,NAME_None);
+	
+}
+
+void ABaseCharacter::TryCancelGuarding()
+{
+	if(CurrentActionState == EActionState::Parry)
+	{
+		StoreBufferingCommand(EActionState::EndGuard);
+		return;
+	}
+
+	
+	if(CurrentActionState == EActionState::Guard)
+	{
+		CancelGuarding();
+	}
+}
+
+void ABaseCharacter::CancelGuarding()
+{
+	CurrentActionState = EActionState::EndGuard;
+	PlayAnimMontage(CancelGuardAnimMontage,1,NAME_None);
 }
 
 
@@ -225,9 +293,25 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 }
 
-
-
 // =============================================== Interface Implementation ======================================
+
+void ABaseCharacter::ParryToGuard_Implementation()
+{
+	ICharacterActionInterface::ParryToGuard_Implementation();
+	
+	// set current action state to guard
+	CurrentActionState = EActionState::Guard;
+
+	if(BufferingAction != EActionState::Idle) BufferChecking();
+}
+
+void ABaseCharacter::GuardToGuardEnd_Implementation()
+{
+	ICharacterActionInterface::GuardToGuardEnd_Implementation();
+
+	// set current action state to guard
+	CurrentActionState = EActionState::EndGuard;
+}
 
 void ABaseCharacter::SwitchToIdleState_Implementation(bool BufferingCheck)
 {
