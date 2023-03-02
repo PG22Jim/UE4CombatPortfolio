@@ -101,7 +101,9 @@ void ABaseCharacter::BeginDodge()
 
 	CurrentActionState = EActionState::Evade;
 
-	PlayAnimMontage(DodgeAnimMontage, 1, NAME_None);
+	CurrentPlayingMontage = DodgeAnimMontage;
+
+	PlayAnimMontage(CurrentPlayingMontage, 1, NAME_None);
 }
 
 
@@ -134,9 +136,9 @@ void ABaseCharacter::BeginNormalAttack()
 
 	CurrentActionState = EActionState::NormalAttack;
 
-	UAnimMontage* PlayingMontage = GetNormalAttackAnimMontage();
+	CurrentPlayingMontage = GetNormalAttackAnimMontage();
 
-	PlayAnimMontage(PlayingMontage, 1, NAME_None);
+	PlayAnimMontage(CurrentPlayingMontage, 1, NAME_None);
 
 	NormalAttackCounterIncrement();
 }
@@ -253,13 +255,15 @@ void ABaseCharacter::BeginGuarding()
 	BufferingAction = EActionState::Idle;
 
 	CurrentActionState = EActionState::Parry;
-	PlayAnimMontage(ParryAnimMontage,1,NAME_None);
+
+	CurrentPlayingMontage = ParryAnimMontage;
+	PlayAnimMontage(CurrentPlayingMontage,1,NAME_None);
 	
 }
 
 void ABaseCharacter::TryCancelGuarding()
 {
-	if(CurrentActionState == EActionState::Parry)
+	if(CurrentActionState == EActionState::Parry || CurrentActionState == EActionState::DamageReceiveGuarding)
 	{
 		StoreBufferingCommand(EActionState::EndGuard);
 		return;
@@ -275,10 +279,70 @@ void ABaseCharacter::TryCancelGuarding()
 void ABaseCharacter::CancelGuarding()
 {
 	CurrentActionState = EActionState::EndGuard;
-	PlayAnimMontage(CancelGuardAnimMontage,1,NAME_None);
+
+	CurrentPlayingMontage = CancelGuardAnimMontage;
+	PlayAnimMontage(CurrentPlayingMontage,1,NAME_None);
 }
 
 
+// ========================================== Instantiate / Receive Damage ========================================
+
+float ABaseCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator,
+	AActor* DamageCauser)
+{
+	// TODO: When player is in invincible action
+	if(IsCharacterInvincible()) return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	// TODO: When player is in Parrying action
+	if(IsCharacterParrying())
+	{
+		// Stop current anim montage and set current as parry counter montage
+		StopAnimMontage(CurrentPlayingMontage);
+		CurrentPlayingMontage = ParryCounterAnimMontage;
+
+		// Set action state to invincible
+		CurrentActionState = EActionState::Invincible;
+		
+		PlayAnimMontage(CurrentPlayingMontage ,1,NAME_None);
+		return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	}
+	
+	// TODO: When player is in Guarding action
+	if(IsCharacterGuarding())
+	{
+		// Stop current anim montage and set current as guarding damage montage
+		StopAnimMontage(CurrentPlayingMontage);
+		CurrentPlayingMontage = GuardDamageAnimMontage;
+
+		// 
+		CurrentActionState = EActionState::Invincible;
+		
+		
+		PlayAnimMontage(CurrentPlayingMontage ,1,NAME_None);
+		return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	}
+
+	// TODO: When player is in Evading action
+	if(IsCharacterDodging())
+	{
+		// Stop current anim montage and set current as guarding damage montage
+		StopAnimMontage(CurrentPlayingMontage);
+		CurrentPlayingMontage = DodgeCounterAnimMontage;
+
+		// 
+		CurrentActionState = EActionState::Invincible;
+		PlayAnimMontage(CurrentPlayingMontage ,1,NAME_None);
+		return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	}
+
+	
+	// TODO: When player is in damageable action
+
+	
+	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+}
+
+// ================================================================================================================
 // Called every frame
 void ABaseCharacter::Tick(float DeltaTime)
 {

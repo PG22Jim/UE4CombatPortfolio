@@ -24,7 +24,10 @@ enum class EActionState: uint8
 	Recovering = 3 UMETA(DisplayName = "RECOVERING"),
 	Parry = 4 UMETA(DisplayName = "PARRY"),
 	Guard = 5 UMETA(DisplayName = "GUARD"),
-	EndGuard = 6 UMETA(DisplayName = "ENDGUARD")
+	EndGuard = 6 UMETA(DisplayName = "ENDGUARD"),
+	Invincible = 7 UMETA(DisplayName = "INVINCIBLE"),
+	UnableToMove = 8 UMETA(DisplayName = "UNABLETOMOVE"),
+	DamageReceiveGuarding = 9 UMETA(DisplayName = "DAMAGERECEIVEGUARDING")	
 };
 
 
@@ -56,6 +59,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=CharacterProperty)
 	EActionState CurrentActionState = EActionState::Idle;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=CharacterProperty)
+	float Health = 100;
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=AnimMontages)
 	UAnimMontage* DodgeAnimMontage;
@@ -68,6 +74,21 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=AnimMontages)
 	UAnimMontage* CancelGuardAnimMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=AnimMontages)
+	UAnimMontage* DodgeCounterAnimMontage;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=AnimMontages)
+	UAnimMontage* ParryCounterAnimMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=AnimMontages)
+	UAnimMontage* GuardDamageAnimMontage;
+	
+	
+	UPROPERTY()
+	UAnimMontage* CurrentPlayingMontage;
+
+	
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	EActionState BufferingAction = EActionState::Idle;
@@ -138,6 +159,15 @@ protected:
 
 	void CancelGuarding();
 
+
+	// ========================================== Instantiate / Receive Damage ========================================
+
+	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
+	bool IsCharacterParrying() const {return CurrentActionState == EActionState::Parry;}
+	bool IsCharacterInvincible() const {return CurrentActionState == EActionState::Invincible;}
+	bool IsCharacterGuarding() const {return CurrentActionState == EActionState::Guard;}
+	bool IsCharacterDodging() const {return CurrentActionState == EActionState::Evade;}
 	
 public:	
 	// Called every frame
