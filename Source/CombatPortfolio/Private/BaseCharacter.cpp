@@ -4,7 +4,9 @@
 #include "CombatPortfolio/Public/BaseCharacter.h"
 
 #include "Components/CapsuleComponent.h"
+#include "Components/TimelineComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values
@@ -27,13 +29,24 @@ ABaseCharacter::ABaseCharacter()
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f); // ...at this rotation rate
 	GetCharacterMovement()->JumpZVelocity = 600.f;
 	GetCharacterMovement()->AirControl = 0.2f;
+
+	TimelineComponent = CreateDefaultSubobject<UTimelineComponent>("Timeline Comp");
 }
 
 // Called when the game starts or when spawned
 void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	CharacterCurrentHealth = CharacterMaxHealth;
+
+	FOnTimelineFloat LaunchAttackHorizontalUpdate;
+	LaunchAttackHorizontalUpdate.BindDynamic(this, &ABaseCharacter::LAHorizontalMovement);
+	LATimeLine.AddInterpFloat(JumpingHorizontalCurve,LaunchAttackHorizontalUpdate);
+
+	FOnTimelineFloat LaunchAttackVerticalUpdate;
+	LaunchAttackVerticalUpdate.BindDynamic(this, &ABaseCharacter::LAVerticalMovement);
+	LATimeLine.AddInterpFloat(JumpingVerticalCurve,LaunchAttackVerticalUpdate);
 }
 
 void ABaseCharacter::TurnAtRate(float Rate)
@@ -115,7 +128,7 @@ void ABaseCharacter::TryNormalAttack()
 	if(CurrentActionState == EActionState::Recovering || CurrentActionState == EActionState::EndGuard) return;
 	
 	// if player is able to attack, do normal attack
-	if(CurrentActionState == EActionState::Idle || CurrentActionState == EActionState::Guard)
+	if(CanCharacterAttackNow())
 	{
 		BeginNormalAttack();
 		return;
@@ -161,6 +174,32 @@ void ABaseCharacter::ResetNormalAttackCounter()
 {
 	NormalAttackCounter = 0;
 }
+
+// ========================================= Launch Attack =========================================
+// =================================================================================================
+
+void ABaseCharacter::LAHorizontalMovement(float HorizontalAlpha)
+{
+	const FVector CharacterCurrentPos = GetActorLocation();
+	
+	const FVector MovingPos = UKismetMathLibrary::VLerp(LaunchStartPos, LaunchEndPos, HorizontalAlpha);
+
+	const FVector LaunchingPos = FVector(MovingPos.X, MovingPos.Y, CharacterCurrentPos.Z);
+
+	SetActorLocation(LaunchingPos);
+}
+
+void ABaseCharacter::LAVerticalMovement(float VerticalAlpha)
+{
+	const FVector CharacterCurrentPos = GetActorLocation();
+
+	const float MovingHeight = UKismetMathLibrary::Lerp(LaunchStartHegiht,LaunchHighestHeight,VerticalAlpha);
+
+	const FVector LaunchingPos = FVector(CharacterCurrentPos.X, CharacterCurrentPos.Y, MovingHeight);
+
+	SetActorLocation(LaunchingPos);
+}
+
 
 // ========================================= Buffering =============================================
 // =================================================================================================
@@ -338,7 +377,16 @@ float ABaseCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 	
 	// TODO: When player is in damageable action
 
+	// health reduce and clamp to see if player is dead
+	CharacterCurrentHealth = FMath::Clamp(CharacterCurrentHealth - DamageAmount, 0.0f, CharacterMaxHealth);
 	
+	// Stop current anim montage and set current as receiving damage or death montage
+	StopAnimMontage(CurrentPlayingMontage);
+	
+	CurrentPlayingMontage = DamageReceiveMontage;
+
+	CurrentActionState = EActionState::UnableToMove;
+	PlayAnimMontage(CurrentPlayingMontage ,1,NAME_None);
 	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 }
 
@@ -347,6 +395,8 @@ float ABaseCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 void ABaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	LATimeLine.TickTimeline(DeltaTime);
 
 }
 
@@ -397,7 +447,6 @@ void ABaseCharacter::SwitchToIdleState_Implementation(bool BufferingCheck)
 	// reset buffering command no matter what
 	BufferingAction = EActionState::Idle;
 }
-
 
 void ABaseCharacter::SetDodgingState_Implementation(bool IsDodging)
 {

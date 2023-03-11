@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "CharacterActionInterface.h"
+#include "Components/TimelineComponent.h"
 #include "GameFramework/Character.h"
 #include "BaseCharacter.generated.h"
 
@@ -19,15 +20,20 @@ UENUM(BlueprintType)
 enum class EActionState: uint8
 {
 	Idle = 0 UMETA(DisplayName = "IDLE"),
-	Evade = 1 UMETA(DisplayName = "EVADE"),
-	NormalAttack = 2 UMETA(DisplayName = "NORMALATTACK"),
-	Recovering = 3 UMETA(DisplayName = "RECOVERING"),
-	Parry = 4 UMETA(DisplayName = "PARRY"),
-	Guard = 5 UMETA(DisplayName = "GUARD"),
-	EndGuard = 6 UMETA(DisplayName = "ENDGUARD"),
-	Invincible = 7 UMETA(DisplayName = "INVINCIBLE"),
-	UnableToMove = 8 UMETA(DisplayName = "UNABLETOMOVE"),
-	DamageReceiveGuarding = 9 UMETA(DisplayName = "DAMAGERECEIVEGUARDING")	
+	Running = 1 UMETA(DisplayName = "RUNNING"),
+	LeftWallRun = 2 UMETA(DisplayName = "LEFTWALLRUN"),
+	RightWallRun = 3 UMETA(DisplayName = "RIGHTWALLRUN"),
+	WallClimb = 4 UMETA(DisplayName = "RIGHTWALLRUN"),
+	Evade = 5 UMETA(DisplayName = "EVADE"),
+	NormalAttack = 6 UMETA(DisplayName = "NORMALATTACK"),
+	Recovering = 7 UMETA(DisplayName = "RECOVERING"),
+	Parry = 8 UMETA(DisplayName = "PARRY"),
+	Guard = 9 UMETA(DisplayName = "GUARD"),
+	EndGuard = 10 UMETA(DisplayName = "ENDGUARD"),
+	Invincible = 11 UMETA(DisplayName = "INVINCIBLE"),
+	UnableToMove = 12 UMETA(DisplayName = "UNABLETOMOVE"),
+	DamageReceiveGuarding = 13 UMETA(DisplayName = "DAMAGERECEIVEGUARDING"),
+	SpecialAttack = 14 UMETA(DisplayName = "SPECIALATTACK")
 };
 
 
@@ -60,8 +66,10 @@ protected:
 	EActionState CurrentActionState = EActionState::Idle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=CharacterProperty)
-	float Health = 100;
+	float CharacterCurrentHealth = 100;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=CharacterProperty)
+	float CharacterMaxHealth = 100;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=AnimMontages)
 	UAnimMontage* DodgeAnimMontage;
@@ -84,10 +92,20 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=AnimMontages)
 	UAnimMontage* GuardDamageAnimMontage;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=AnimMontages)
+	UAnimMontage* DamageReceiveMontage;
 	
 	UPROPERTY()
 	UAnimMontage* CurrentPlayingMontage;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	UTimelineComponent* TimelineComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LaunchAttack)
+	UCurveFloat* JumpingHorizontalCurve;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LaunchAttack)
+	UCurveFloat* JumpingVerticalCurve;
 	
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -96,8 +114,19 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float BufferDuration = 0.2f;
 
-	// Timer Handle for calling parkour functions in time
+	// Timer Handle for calling functions in time
 	FTimerHandle BufferTimerHandle;
+
+	// Timeline
+	FTimeline LATimeLine;
+
+	FVector LaunchStartPos;
+
+	FVector LaunchEndPos;
+
+	float LaunchStartHegiht;
+
+	float LaunchHighestHeight;
 	
 	
 	int32 NormalAttackCounter = 0;
@@ -140,6 +169,14 @@ protected:
 
 	void ResetNormalAttackCounter();
 
+	// =========================================== Launch Attack ===========================================
+
+	UFUNCTION()
+	void LAHorizontalMovement(float HorizontalAlpha);
+
+	UFUNCTION()
+	void LAVerticalMovement(float VerticalAlpha);
+	
 
 	// =========================================== Buffer ===========================================
 	void StoreBufferingCommand(EActionState BufferingActionCommand);
@@ -164,15 +201,17 @@ protected:
 
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
+	bool CanCharacterAttackNow() const {return CurrentActionState == EActionState::Idle || CurrentActionState == EActionState::Guard;}
 	bool IsCharacterParrying() const {return CurrentActionState == EActionState::Parry;}
 	bool IsCharacterInvincible() const {return CurrentActionState == EActionState::Invincible;}
-	bool IsCharacterGuarding() const {return CurrentActionState == EActionState::Guard;}
+	bool IsCharacterGuarding() const {return CurrentActionState == EActionState::Guard || CurrentActionState == EActionState::DamageReceiveGuarding;}
 	bool IsCharacterDodging() const {return CurrentActionState == EActionState::Evade;}
+
 	
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
+	
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
@@ -186,7 +225,7 @@ public:
 
 	virtual void SetRecoveringState_Implementation(bool IsRecovering) override;
 
-
+	EActionState GetCurrentActionState() const {return CurrentActionState;}
 	
 	
 };

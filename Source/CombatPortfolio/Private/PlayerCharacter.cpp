@@ -5,6 +5,7 @@
 
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -35,6 +36,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("NormalAttack", IE_Pressed, this, &APlayerCharacter::TryNormalAttack);
 	PlayerInputComponent->BindAction("Guard", IE_Pressed, this, &APlayerCharacter::TryGuard);
 	PlayerInputComponent->BindAction("Guard", IE_Released, this, &APlayerCharacter::TryCancelGuarding);
+	PlayerInputComponent->BindAction("DebugButton", IE_Pressed, this, &APlayerCharacter::DebugTesting);
 	
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
@@ -50,4 +52,36 @@ void APlayerCharacter::LookUpAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
+}
+
+void APlayerCharacter::DebugTesting()
+{
+	// Hit result
+	FHitResult Hit;
+	// Empty array of ignoring actor, maybe add Enemies classes to be ignored
+	const TArray<AActor*> IgnoreActors;
+	// Line trace by channel from Kismet System Library
+	//
+
+	// Calculate launch start position, end position and launch height position
+	LaunchStartPos = GetActorLocation();
+
+	const FVector FacingDir = GetActorForwardVector();
+	
+	const FVector EndPos =  LaunchStartPos + (FacingDir * 300);
+
+	// line trace to see is there any blocking thing from starting to ending
+	const bool bHit = UKismetSystemLibrary::LineTraceSingle(this, LaunchStartPos, EndPos, UEngineTypes::ConvertToTraceType(ECC_Visibility), false, IgnoreActors, EDrawDebugTrace::Persistent,Hit,true);
+
+	LaunchStartHegiht = LaunchStartPos.Z;
+
+	LaunchHighestHeight = LaunchStartHegiht + 300;
+
+	if(bHit)
+		LaunchEndPos = Hit.ImpactPoint;
+	else
+		LaunchEndPos = EndPos;
+
+	LATimeLine.PlayFromStart();
+	
 }

@@ -36,7 +36,8 @@ protected:
 	 */
 	void LookUpAtRate(float Rate);
 
-
+	void DebugTesting();
+	
 
 	
 
