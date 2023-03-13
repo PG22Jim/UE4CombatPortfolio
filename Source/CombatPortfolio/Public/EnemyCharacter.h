@@ -16,11 +16,9 @@
 UENUM(BlueprintType)
 enum class EEnemyAttackType : uint8
 {
-	NormalAttack = 0 UMETA(DisplayName = "KATANA"),
-	LaunchingAttack = 1 UMETA(DisplayName = "GREATSWORD"),
-	
+	NormalAttack = 0 UMETA(DisplayName = "NORMALATTACK"),
+	LaunchingAttack = 1 UMETA(DisplayName = "LAUNCHATTACK"),
 };
-
 
 
 
@@ -69,7 +67,7 @@ public:
 
 	virtual void BeginPlay() override;
 
-	virtual void AIExecuteLaunchAttack_Implementation(UBTTask_ExecuteNormalAttack* NormalAttackTask, FVector CurrentPlayerPos) override;
+	virtual void AIExecuteLaunchAttack_Implementation(UBTTask_EnemyExecution_Base* NormalAttackTask, FVector CurrentPlayerPos) override;
 	
 	virtual void AIExecuteNormalAttack_Implementation(UBTTask_ExecuteNormalAttack* NormalAttackTask) override;
 

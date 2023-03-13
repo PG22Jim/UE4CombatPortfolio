@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BTTask_EnemyExecution_Base.h"
 #include "PlayerCharacter.h"
 #include "UObject/Interface.h"
 #include "AIActionInterface.generated.h"
@@ -30,7 +31,7 @@ public:
 	void AIExecuteNormalAttack(UBTTask_ExecuteNormalAttack* NormalAttackTask);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void AIExecuteLaunchAttack(UBTTask_ExecuteNormalAttack* NormalAttackTask, FVector CurrentPlayerPos);
+	void AIExecuteLaunchAttack(UBTTask_EnemyExecution_Base* ExecutionTask, FVector CurrentPlayerPos);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void AIExecuteFinishNorAttackTask();

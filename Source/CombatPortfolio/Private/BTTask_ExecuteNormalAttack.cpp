@@ -24,41 +24,11 @@ EBTNodeResult::Type UBTTask_ExecuteNormalAttack::ExecuteTask(UBehaviorTreeCompon
 	
 	if(AiCharacter->GetClass()->ImplementsInterface(UAIActionInterface::StaticClass()))
 	{
-
-
-		UBlackboardComponent* BlackBoard = OwnerComp.GetBlackboardComponent();
-		if(BlackBoard == nullptr) return EBTNodeResult::Failed;
+		IAIActionInterface::Execute_AIExecuteNormalAttack(AiCharacter, this);
 		
-		UObject* PlayerRefObject = BlackBoard->GetValueAsObject(BBKey_PlayerRef.SelectedKeyName);
-		if(PlayerRefObject == nullptr) return EBTNodeResult::Failed;
-
-		APlayerCharacter* PlayerCharacterClass = Cast<APlayerCharacter>(PlayerRefObject);
-		if(PlayerCharacterClass == nullptr) return EBTNodeResult::Failed;
-
-		const FVector CurrentPlayerPos = PlayerCharacterClass->GetActorLocation();
-		
-		IAIActionInterface::Execute_AIExecuteLaunchAttack(AiCharacter, this, CurrentPlayerPos);
-		
-		// // Decide which attack type
-		// EEnemyAttackType ExecutingAttackType = GetAttackTypeThisRound();
-		//
-		// switch (ExecutingAttackType)
-		// {
-		// 	case EEnemyAttackType::NormalAttack:
-		// 		IAIActionInterface::Execute_AIExecuteNormalAttack(AiCharacter, this);
-		// 		break;
-		// 	case EEnemyAttackType::LaunchingAttack:
-		//
-		// 		break;
-		// 	default:
-		// 		break;
-		// }
-		
-				
 		return EBTNodeResult::InProgress;
 	}
 
-	
 	return EBTNodeResult::Failed;
 }
 
@@ -69,9 +39,4 @@ EEnemyAttackType UBTTask_ExecuteNormalAttack::GetAttackTypeThisRound()
 	if(RndInt == 2) return EEnemyAttackType::NormalAttack;
 	
 	return EEnemyAttackType::LaunchingAttack;
-}
-
-void UBTTask_ExecuteNormalAttack::NormalAttackTaskEnd(UBehaviorTreeComponent* OwnerComp)
-{
-	FinishLatentTask(*OwnerComp,EBTNodeResult::Succeeded);
 }

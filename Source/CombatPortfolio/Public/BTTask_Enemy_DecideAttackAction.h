@@ -5,17 +5,20 @@
 #include "CoreMinimal.h"
 #include "EnemyCharacter.h"
 #include "BehaviorTree/Tasks/BTTask_BlackboardBase.h"
-#include "BTTask_ExecuteNormalAttack.generated.h"
+#include "BTTask_Enemy_DecideAttackAction.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class COMBATPORTFOLIO_API UBTTask_ExecuteNormalAttack : public UBTTask_EnemyExecution_Base
+class COMBATPORTFOLIO_API UBTTask_Enemy_DecideAttackAction : public UBTTask_BlackboardBase
 {
 	GENERATED_BODY()
 protected:
+	
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 
-	EEnemyAttackType GetAttackTypeThisRound();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=AttackActionType)
+	FBlackboardKeySelector BBKey_ActionTypeToOverwrite;
+	
 };

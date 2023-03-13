@@ -16,7 +16,7 @@ void AEnemyCharacter::AIExecuteNormalAttack_Implementation(UBTTask_ExecuteNormal
 	//if(!OnFinishNATask.IsBound())
 
 	// Bind ending task function with enemy character class
-	OnFinishNATask.BindDynamic(NormalAttackTask, &UBTTask_ExecuteNormalAttack::NormalAttackTaskEnd);
+	OnFinishNATask.BindDynamic(NormalAttackTask, &UBTTask_ExecuteNormalAttack::ActionTaskEnd);
 	
 	// decide how many attack Ai should make
 	MaxAttackEachExecution = RndDecideMaxAttack();
@@ -94,12 +94,12 @@ void AEnemyCharacter::BeginPlay()
 	InitializeBTAndBBComponent();
 }
 
-void AEnemyCharacter::AIExecuteLaunchAttack_Implementation(UBTTask_ExecuteNormalAttack* NormalAttackTask, FVector CurrentPlayerPos)
+void AEnemyCharacter::AIExecuteLaunchAttack_Implementation(UBTTask_EnemyExecution_Base* ExecutionTask, FVector CurrentPlayerPos)
 {
-	IAIActionInterface::AIExecuteLaunchAttack_Implementation(NormalAttackTask, CurrentPlayerPos);
+	IAIActionInterface::AIExecuteLaunchAttack_Implementation(ExecutionTask, CurrentPlayerPos);
 
 	// Bind ending task function with enemy character class
-	OnFinishNATask.BindDynamic(NormalAttackTask, &UBTTask_ExecuteNormalAttack::NormalAttackTaskEnd);
+	OnFinishNATask.BindDynamic(ExecutionTask, &UBTTask_EnemyExecution_Base::ActionTaskEnd);
 	
 	if(CurrentActionState == EActionState::Idle)
 	{
