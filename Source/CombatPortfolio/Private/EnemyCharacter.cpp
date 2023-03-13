@@ -94,9 +94,9 @@ void AEnemyCharacter::BeginPlay()
 	InitializeBTAndBBComponent();
 }
 
-void AEnemyCharacter::AIExecuteLaunchAttack_Implementation(UBTTask_ExecuteNormalAttack* NormalAttackTask)
+void AEnemyCharacter::AIExecuteLaunchAttack_Implementation(UBTTask_ExecuteNormalAttack* NormalAttackTask, FVector CurrentPlayerPos)
 {
-	IAIActionInterface::AIExecuteLaunchAttack_Implementation(NormalAttackTask);
+	IAIActionInterface::AIExecuteLaunchAttack_Implementation(NormalAttackTask, CurrentPlayerPos);
 
 	// Bind ending task function with enemy character class
 	OnFinishNATask.BindDynamic(NormalAttackTask, &UBTTask_ExecuteNormalAttack::NormalAttackTaskEnd);
@@ -108,6 +108,10 @@ void AEnemyCharacter::AIExecuteLaunchAttack_Implementation(UBTTask_ExecuteNormal
 		CurrentPlayingMontage = LaunchAttackMontage;
 
 		PlayAnimMontage(CurrentPlayingMontage, 1, NAME_None);
+
+		const FVector MovingPos = GetPosNearTarget(CurrentPlayerPos);
+		
+		LaunchAttackJump(MovingPos);
 	}
 
 }

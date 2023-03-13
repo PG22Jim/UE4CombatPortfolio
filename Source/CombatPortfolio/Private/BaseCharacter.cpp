@@ -200,6 +200,53 @@ void ABaseCharacter::LAVerticalMovement(float VerticalAlpha)
 	SetActorLocation(LaunchingPos);
 }
 
+void ABaseCharacter::LaunchAttackJump(FVector EndPos)
+{
+	// Hit result
+	FHitResult Hit;
+	// Empty array of ignoring actor, maybe add Enemies classes to be ignored
+	TArray<AActor*> IgnoreActors;
+
+	IgnoreActors.Add(this);
+	
+
+	// Calculate launch start position, end position and launch height position
+	LaunchStartPos = GetActorLocation();
+	
+	// Line trace by channel from Kismet System Library
+	// line trace to see is there any blocking thing from starting to ending
+	const bool bHit = UKismetSystemLibrary::LineTraceSingle(this, LaunchStartPos, EndPos, UEngineTypes::ConvertToTraceType(ECC_Visibility), false, IgnoreActors, EDrawDebugTrace::Persistent,Hit,true);
+
+	LaunchStartHegiht = LaunchStartPos.Z;
+
+	LaunchHighestHeight = LaunchStartHegiht + 300;
+
+	if(bHit)
+		LaunchEndPos = Hit.ImpactPoint;
+	else
+		LaunchEndPos = EndPos;
+
+	LATimeLine.PlayFromStart();
+}
+
+FVector ABaseCharacter::GetPosNearTarget(FVector TargetPos)
+{
+	// Get direction from target to self
+	const FVector SelfPos = GetActorLocation();
+
+	const FVector DirFromSelfToTarget = UKismetMathLibrary::GetDirectionUnitVector(SelfPos, TargetPos);
+
+	const FVector DirFromTargetToSelf = DirFromSelfToTarget * -1;
+
+	const FVector TargetToSelfWithoutZ = FVector(DirFromTargetToSelf.X, DirFromTargetToSelf.Y, 0);
+
+	const FVector Offset = TargetToSelfWithoutZ * OffsetDistance;
+
+	const FVector ReturnPos = TargetPos + Offset;
+	
+	return ReturnPos;
+}
+
 
 // ========================================= Buffering =============================================
 // =================================================================================================

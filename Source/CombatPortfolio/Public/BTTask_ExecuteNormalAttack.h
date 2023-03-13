@@ -18,6 +18,9 @@ protected:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 
 	EEnemyAttackType GetAttackTypeThisRound();
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category= ValueToReadFromBB)
+	FBlackboardKeySelector BBKey_PlayerRef;
 	
 public:
 	

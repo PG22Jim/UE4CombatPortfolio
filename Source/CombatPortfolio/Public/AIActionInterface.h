@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PlayerCharacter.h"
 #include "UObject/Interface.h"
 #include "AIActionInterface.generated.h"
 
@@ -29,7 +30,7 @@ public:
 	void AIExecuteNormalAttack(UBTTask_ExecuteNormalAttack* NormalAttackTask);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void AIExecuteLaunchAttack(UBTTask_ExecuteNormalAttack* NormalAttackTask);
+	void AIExecuteLaunchAttack(UBTTask_ExecuteNormalAttack* NormalAttackTask, FVector CurrentPlayerPos);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void AIExecuteFinishNorAttackTask();

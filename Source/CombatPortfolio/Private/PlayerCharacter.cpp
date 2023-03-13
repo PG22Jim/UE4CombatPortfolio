@@ -3,8 +3,10 @@
 
 #include "CombatPortfolio/Public/PlayerCharacter.h"
 
+#include "EnemyCharacter.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 APlayerCharacter::APlayerCharacter()
@@ -56,32 +58,13 @@ void APlayerCharacter::LookUpAtRate(float Rate)
 
 void APlayerCharacter::DebugTesting()
 {
-	// Hit result
-	FHitResult Hit;
-	// Empty array of ignoring actor, maybe add Enemies classes to be ignored
-	const TArray<AActor*> IgnoreActors;
-	// Line trace by channel from Kismet System Library
+	// TArray<AActor*> FoundActors;
+	// UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemyCharacter::StaticClass(), FoundActors);
 	//
-
-	// Calculate launch start position, end position and launch height position
-	LaunchStartPos = GetActorLocation();
-
-	const FVector FacingDir = GetActorForwardVector();
-	
-	const FVector EndPos =  LaunchStartPos + (FacingDir * 300);
-
-	// line trace to see is there any blocking thing from starting to ending
-	const bool bHit = UKismetSystemLibrary::LineTraceSingle(this, LaunchStartPos, EndPos, UEngineTypes::ConvertToTraceType(ECC_Visibility), false, IgnoreActors, EDrawDebugTrace::Persistent,Hit,true);
-
-	LaunchStartHegiht = LaunchStartPos.Z;
-
-	LaunchHighestHeight = LaunchStartHegiht + 300;
-
-	if(bHit)
-		LaunchEndPos = Hit.ImpactPoint;
-	else
-		LaunchEndPos = EndPos;
-
-	LATimeLine.PlayFromStart();
-	
+	// AEnemyCharacter* EnemyCharacter = Cast<AEnemyCharacter>(FoundActors[0]);
+	//
+	//
+	// const FVector DestPos = GetPosNearTarget();
+	//
+	// LaunchAttackJump(DestPos);
 }

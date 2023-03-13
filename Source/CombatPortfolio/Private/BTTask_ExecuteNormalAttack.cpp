@@ -6,13 +6,14 @@
 #include "AIActionInterface.h"
 #include "AIController.h"
 #include "EnemyCharacter.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Character.h"
 #include "Kismet/KismetMathLibrary.h"
 
 EBTNodeResult::Type UBTTask_ExecuteNormalAttack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	AActor* OwnerActor = OwnerComp.GetOwner();
-
+	
 	if(OwnerActor == nullptr) return EBTNodeResult::Failed;
 
 	const AAIController* AiController = OwnerComp.GetAIOwner();
@@ -21,11 +22,22 @@ EBTNodeResult::Type UBTTask_ExecuteNormalAttack::ExecuteTask(UBehaviorTreeCompon
 	ACharacter* AiCharacter = AiController->GetCharacter();
 	if(AiCharacter == nullptr) return  EBTNodeResult::Failed;
 	
-
-	
 	if(AiCharacter->GetClass()->ImplementsInterface(UAIActionInterface::StaticClass()))
 	{
-		IAIActionInterface::Execute_AIExecuteLaunchAttack(AiCharacter, this);
+
+
+		UBlackboardComponent* BlackBoard = OwnerComp.GetBlackboardComponent();
+		if(BlackBoard == nullptr) return EBTNodeResult::Failed;
+		
+		UObject* PlayerRefObject = BlackBoard->GetValueAsObject(BBKey_PlayerRef.SelectedKeyName);
+		if(PlayerRefObject == nullptr) return EBTNodeResult::Failed;
+
+		APlayerCharacter* PlayerCharacterClass = Cast<APlayerCharacter>(PlayerRefObject);
+		if(PlayerCharacterClass == nullptr) return EBTNodeResult::Failed;
+
+		const FVector CurrentPlayerPos = PlayerCharacterClass->GetActorLocation();
+		
+		IAIActionInterface::Execute_AIExecuteLaunchAttack(AiCharacter, this, CurrentPlayerPos);
 		
 		// // Decide which attack type
 		// EEnemyAttackType ExecutingAttackType = GetAttackTypeThisRound();
