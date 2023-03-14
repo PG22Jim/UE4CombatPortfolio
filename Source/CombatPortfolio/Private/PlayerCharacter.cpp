@@ -1,10 +1,13 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "PlayerCharacter.h"
+#include "CombatPortfolio/Public/PlayerCharacter.h"
 
+#include "EnemyCharacter.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -32,6 +35,11 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAxis("MoveForward", this, &APlayerCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &APlayerCharacter::MoveRight);
 	PlayerInputComponent->BindAction("Evade", IE_Pressed, this, &APlayerCharacter::TryDodge);
+	PlayerInputComponent->BindAction("NormalAttack", IE_Pressed, this, &APlayerCharacter::TryNormalAttack);
+	PlayerInputComponent->BindAction("Guard", IE_Pressed, this, &APlayerCharacter::TryGuard);
+	PlayerInputComponent->BindAction("Guard", IE_Released, this, &APlayerCharacter::TryCancelGuarding);
+	PlayerInputComponent->BindAction("DebugButton", IE_Pressed, this, &APlayerCharacter::DebugTesting);
+	
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
@@ -46,4 +54,17 @@ void APlayerCharacter::LookUpAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
+}
+
+void APlayerCharacter::DebugTesting()
+{
+	// TArray<AActor*> FoundActors;
+	// UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemyCharacter::StaticClass(), FoundActors);
+	//
+	// AEnemyCharacter* EnemyCharacter = Cast<AEnemyCharacter>(FoundActors[0]);
+	//
+	//
+	// const FVector DestPos = GetPosNearTarget();
+	//
+	// LaunchAttackJump(DestPos);
 }
