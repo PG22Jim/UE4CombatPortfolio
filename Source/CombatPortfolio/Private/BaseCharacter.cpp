@@ -229,7 +229,7 @@ void ABaseCharacter::LaunchAttackJump(FVector EndPos)
 	LATimeLine.PlayFromStart();
 }
 
-FVector ABaseCharacter::GetPosNearTarget(FVector TargetPos)
+FVector ABaseCharacter::GetPosNearTarget(FVector TargetPos, float OffsetDistance)
 {
 	// Get direction from target to self
 	const FVector SelfPos = GetActorLocation();

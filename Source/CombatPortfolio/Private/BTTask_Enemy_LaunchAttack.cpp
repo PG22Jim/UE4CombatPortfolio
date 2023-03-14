@@ -33,7 +33,7 @@ EBTNodeResult::Type UBTTask_Enemy_LaunchAttack::ExecuteTask(UBehaviorTreeCompone
 
 		const FVector CurrentPlayerPos = PlayerCharacterClass->GetActorLocation();
 		
-		IAIActionInterface::Execute_AIExecuteLaunchAttack(AiCharacter, this, CurrentPlayerPos);
+		IAIActionInterface::Execute_AIExecuteLaunchAttack(AiCharacter, this, CurrentPlayerPos, PlayerAndLandPosOffset);
 		
 		return EBTNodeResult::InProgress;
 	}

@@ -19,4 +19,8 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category= ValueToReadFromBB)
 	FBlackboardKeySelector BBKey_PlayerRef;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category= PropertySetting)
+	float PlayerAndLandPosOffset = 125;
+	
 };

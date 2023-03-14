@@ -67,7 +67,7 @@ public:
 
 	virtual void BeginPlay() override;
 
-	virtual void AIExecuteLaunchAttack_Implementation(UBTTask_EnemyExecution_Base* NormalAttackTask, FVector CurrentPlayerPos) override;
+	virtual void AIExecuteLaunchAttack_Implementation(UBTTask_EnemyExecution_Base* NormalAttackTask, FVector CurrentPlayerPos, float OffsetDistance) override;
 	
 	virtual void AIExecuteNormalAttack_Implementation(UBTTask_ExecuteNormalAttack* NormalAttackTask) override;
 

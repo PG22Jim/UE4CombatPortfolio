@@ -107,8 +107,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LaunchAttack)
 	UCurveFloat* JumpingVerticalCurve;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LaunchAttack)
-	float OffsetDistance = 125;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	EActionState BufferingAction = EActionState::Idle;
@@ -181,7 +179,7 @@ protected:
 
 	void LaunchAttackJump(FVector EndPos);
 
-	FVector GetPosNearTarget(FVector TargetPos);
+	FVector GetPosNearTarget(FVector TargetPos, float OffsetDistance);
 
 	// =========================================== Buffer ===========================================
 	void StoreBufferingCommand(EActionState BufferingActionCommand);

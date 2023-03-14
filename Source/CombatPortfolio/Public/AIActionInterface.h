@@ -31,7 +31,7 @@ public:
 	void AIExecuteNormalAttack(UBTTask_ExecuteNormalAttack* NormalAttackTask);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void AIExecuteLaunchAttack(UBTTask_EnemyExecution_Base* ExecutionTask, FVector CurrentPlayerPos);
+	void AIExecuteLaunchAttack(UBTTask_EnemyExecution_Base* ExecutionTask, FVector CurrentPlayerPos, float OffsetDistance);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void AIExecuteFinishNorAttackTask();
